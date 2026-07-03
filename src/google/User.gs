@@ -64,7 +64,7 @@ function addUser(sheet, data) {
   
   // Add new user row
   var newRow = [
-    data.userId || "USR" + (values.length).toString().padStart(3, '0'),
+    data.userId || "USR" + ("000" + values.length).slice(-3),
     loginIdUpper,
     data.passwordHash || "",
     data.fullName || "New Staff",

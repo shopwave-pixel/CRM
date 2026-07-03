@@ -18,12 +18,17 @@ function logActivity(sheet, email, action, details, employeeCode) {
     if (!empCode && email && email !== "System" && email !== "Anonymous") {
       try {
         var users = getSheetData(sheet, SHEET_NAMES.USERS);
-        var found = users.find(function(u) {
+        var found = null;
+        for (var k = 0; k < users.length; k++) {
+          var u = users[k];
           var uEmail = u.email || u.Email || "";
           var uLogin = u.loginId || u.LoginId || "";
-          return uEmail.trim().toLowerCase() === email.trim().toLowerCase() ||
-                 uLogin.trim().toLowerCase() === email.trim().toLowerCase();
-        });
+          if (uEmail.trim().toLowerCase() === email.trim().toLowerCase() ||
+              uLogin.trim().toLowerCase() === email.trim().toLowerCase()) {
+            found = u;
+            break;
+          }
+        }
         if (found) {
           empCode = found.employeeCode || found.EmployeeCode || found["Employee Code"] || "";
         }

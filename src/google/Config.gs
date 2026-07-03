@@ -3,7 +3,7 @@
  * File: Config.gs - Configuration and constants
  */
 
-const SHEET_NAMES = {
+var SHEET_NAMES = {
   CLIENTS: "Clients",
   TICKETS: "Tickets",
   CONVERSATIONS: "Conversations",
@@ -16,7 +16,7 @@ const SHEET_NAMES = {
   DASHBOARD: "Dashboard"
 };
 
-const HEADERS = {
+var HEADERS = {
   CLIENTS: ["Client ID", "Name", "Phone", "Company", "Status", "Total Tickets", "Next Follow Up", "Last Contact", "Created At", "Updated At", "District", "Is Pinned", "Is Archived", "Follow Up History"],
   TICKETS: ["Ticket ID", "Client ID", "Title", "Description", "Priority", "Status", "Created Date", "Last Updated", "Next Follow Up", "Total Conversations"],
   CONVERSATIONS: ["Conversation ID", "Ticket ID", "Date & Time", "Conversation Note", "Next Follow Up", "Created By", "User Email"],

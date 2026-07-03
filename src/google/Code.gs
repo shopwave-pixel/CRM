@@ -74,11 +74,11 @@ if (typeof globalRef.initSheets !== 'function') {
 
 function doGet(e) {
   try {
-    const action = e.parameter.action;
+    var action = e.parameter.action;
     if (action === "ping") {
       return globalRef.jsonResponse({ success: true, message: "pong" });
     }
-    const sheet = globalRef.getSpreadsheet();
+    var sheet = globalRef.getSpreadsheet();
     if (!sheet) {
       return globalRef.jsonResponse({
         error: "Spreadsheet not found. Please ensure the Apps Script SPREADSHEET_ID script property is configured.",
@@ -87,7 +87,7 @@ function doGet(e) {
     }
     globalRef.initSheets(sheet);
     
-    let result;
+    var result;
     
     switch (action) {
       case "getClients":
@@ -132,19 +132,19 @@ function doGet(e) {
 
 function doPost(e) {
   try {
-    let postData;
+    var postData;
     if (e.postData && e.postData.contents) {
       postData = JSON.parse(e.postData.contents);
     } else {
       postData = e.parameter;
     }
     
-    const action = postData ? postData.action : "";
+    var action = postData ? postData.action : "";
     if (action === "ping") {
       return globalRef.jsonResponse({ success: true, message: "pong" });
     }
     
-    const sheet = globalRef.getSpreadsheet();
+    var sheet = globalRef.getSpreadsheet();
     if (!sheet && action !== "initializeDatabase") {
       return globalRef.jsonResponse({
         error: "Spreadsheet not found. Please ensure the Apps Script SPREADSHEET_ID script property is configured.",
@@ -156,7 +156,7 @@ function doPost(e) {
       globalRef.initSheets(sheet);
     }
     
-    let result;
+    var result;
     
     switch (action) {
       case "initializeDatabase":
