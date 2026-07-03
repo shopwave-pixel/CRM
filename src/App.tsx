@@ -380,14 +380,14 @@ const MainAppContent: React.FC = () => {
               <p className="text-white font-bold tracking-widest text-xs uppercase">Live Deployment</p>
             </div>
             <h2 className="text-4xl font-black text-white leading-tight mb-4">Enterprise CRM Mobile Suite</h2>
-            <p className="text-slate-300 text-base mb-8 leading-relaxed">Fully integrated with Google Sheets. Real-time REST API sync. Firebase Secure. Built for operational speed.</p>
+            <p className="text-slate-300 text-base mb-8 leading-relaxed">Fully integrated with Google Sheets. Real-time REST API sync. Highly Secure. Built for operational speed.</p>
             
             <div className="space-y-4">
               <div className="flex items-center gap-3.5 text-slate-200 text-sm font-semibold">
                 <div className="bg-blue-600/20 p-2 rounded-xl border border-blue-500/10">
                   <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
                 </div>
-                <span>Google OAuth 2.0 Auth Only</span>
+                <span>Secure Login ID & Password Auth</span>
               </div>
               <div className="flex items-center gap-3.5 text-slate-200 text-sm font-semibold">
                 <div className="bg-blue-600/20 p-2 rounded-xl border border-blue-500/10">

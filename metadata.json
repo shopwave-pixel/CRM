@@ -1,6 +1,6 @@
 {
   "name": "Mobile CRM for Google Sheets",
-  "description": "A mobile-first Client CRM that runs on Google Sheets via Google Apps Script and secure Firebase Google Authentication.",
+  "description": "A mobile-first Client CRM that runs on Google Sheets via Google Apps Script with secure integrated spreadsheet authentication.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

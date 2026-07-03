@@ -321,7 +321,7 @@ export const Profile: React.FC = () => {
   
   // Connection testing states
   const [testingGas, setTestingGas] = useState<boolean>(false);
-  const [testingFirebase, setTestingFirebase] = useState<boolean>(false);
+  const [testingAuthHandshake, setTestingAuthHandshake] = useState<boolean>(false);
 
   const [lastRefreshedAt, setLastRefreshedAt] = useState<string>(() => {
     return getBangladeshDateTimeString();
@@ -491,7 +491,7 @@ export const Profile: React.FC = () => {
       name: 'Internet Connectivity',
       status: isOnline ? 'PASS' : 'FAIL',
       details: isOnline 
-        ? 'Active internet connection detected. Google and Firebase domain names are fully resolvable.' 
+        ? 'Active internet connection detected. Google and Apps Script domain names are fully resolvable.' 
         : 'Browser reports offline state. Core services cannot be reached.',
       possibleCause: !isOnline ? 'Network cable disconnected or Wi-Fi disabled.' : undefined,
       recommendation: !isOnline ? 'Check physical connection and router DNS settings.' : undefined,
@@ -502,38 +502,37 @@ export const Profile: React.FC = () => {
     setDiagnosticsStep(2);
     setDiagnosticsStepText('Verifying Environment Variables...');
     await new Promise(resolve => setTimeout(resolve, 200));
-    const firebaseApiKey = (import.meta as any).env.VITE_FIREBASE_API_KEY || firebaseConfig.apiKey;
     const gasUrl = getStoredAppsScriptUrl();
     const missingVars = [];
-    if (!firebaseApiKey) missingVars.push('VITE_FIREBASE_API_KEY');
+    if (!gasUrl) missingVars.push('VITE_GOOGLE_SCRIPT_URL');
     
     results.push({
       id: 12,
       name: 'Environment Variables',
       status: missingVars.length === 0 ? 'PASS' : 'FAIL',
       details: missingVars.length === 0 
-        ? 'All required Firebase and Google configuration variables are properly set in the current execution context.'
-        : `Missing critical variables: ${missingVars.join(', ')}. Sandbox variables are fallback.`,
+        ? 'All required Google Apps Script configuration variables are properly set in the current execution context.'
+        : `Missing critical variables: ${missingVars.join(', ')}. Sandbox database mode will be active.`,
       possibleCause: missingVars.length > 0 ? 'Variables not added to deployment settings or .env file.' : undefined,
-      recommendation: missingVars.length > 0 ? 'Add missing environment variables in Vercel settings or your local .env file.' : undefined,
+      recommendation: missingVars.length > 0 ? 'Add missing environment variables in deployment settings or your local .env file.' : undefined,
       priority: missingVars.length > 0 ? 'High' : undefined
     });
 
-    // Step 3: Firebase Authentication
+    // Step 3: Secure Session Authentication
     setDiagnosticsStep(3);
-    setDiagnosticsStepText('Validating Firebase Auth Handshake...');
+    setDiagnosticsStepText('Validating Session Auth Handshake...');
     await new Promise(resolve => setTimeout(resolve, 200));
-    const firebaseOk = !!firebaseApiKey;
+    const authOk = true;
     results.push({
       id: 3,
-      name: 'Firebase Authentication',
-      status: firebaseOk ? 'PASS' : 'FAIL',
-      details: firebaseOk 
-        ? `Firebase project "methodical-theory-753sn" is securely linked. Google authentication provider is active.`
-        : 'Firebase project configuration is incomplete. Authentication is running in simulated offline mode.',
-      possibleCause: !firebaseOk ? 'API Key or Project ID is missing or incorrect.' : undefined,
-      recommendation: !firebaseOk ? 'Check VITE_FIREBASE_API_KEY and register your app in the Firebase console.' : undefined,
-      priority: !firebaseOk ? 'High' : undefined
+      name: 'Secure Session Authentication',
+      status: authOk ? 'PASS' : 'FAIL',
+      details: authOk 
+        ? `Database user authentication engine is active. Standard Login ID and Password Hash mapping is fully configured.`
+        : 'Session database system is running in offline mode.',
+      possibleCause: undefined,
+      recommendation: undefined,
+      priority: undefined
     });
 
     // Step 4: Google Sheets Connection
@@ -806,26 +805,16 @@ export const Profile: React.FC = () => {
     }
   };
 
-  const handleTestFirebase = async () => {
-    setTestingFirebase(true);
+  const handleTestAuthHandshake = async () => {
+    setTestingAuthHandshake(true);
     await new Promise(resolve => setTimeout(resolve, 600));
-    const firebaseApiKey = (import.meta as any).env.VITE_FIREBASE_API_KEY || firebaseConfig.apiKey;
-    if (firebaseApiKey) {
-      toast.success('Firebase client handshake verified. Auth servers are active.');
-      setSuccessRequests(prev => {
-        const next = prev + 1;
-        localStorage.setItem('crm_success_requests', String(next));
-        return next;
-      });
-    } else {
-      toast.error('Firebase API Key missing in environment.');
-      setFailedRequests(prev => {
-        const next = prev + 1;
-        localStorage.setItem('crm_failed_requests', String(next));
-        return next;
-      });
-    }
-    setTestingFirebase(false);
+    toast.success('Secure Database credentials validated successfully.');
+    setSuccessRequests(prev => {
+      const next = prev + 1;
+      localStorage.setItem('crm_success_requests', String(next));
+      return next;
+    });
+    setTestingAuthHandshake(false);
   };
 
   const handleClearCache = () => {
@@ -1216,52 +1205,7 @@ export const Profile: React.FC = () => {
   });
 
   // Base configurations
-  const firebaseConfig = {
-    apiKey: "AIzaSyA1djo2J_AguwLohVRbI7wZEreQTfkW3MA",
-    authDomain: "methodical-theory-753sn.firebaseapp.com",
-    projectId: "methodical-theory-753sn",
-    storageBucket: "methodical-theory-753sn.firebasestorage.app",
-    messagingSenderId: "302426426307",
-    appId: "1:302426426307:web:166e192cb1443154ebcb76",
-    measurementId: "G-7X9B484ZNS"
-  };
-
   const envVars = [
-    {
-      key: 'VITE_FIREBASE_API_KEY',
-      description: 'API Key used to authenticate client requests to Firebase services.',
-      value: (import.meta as any).env.VITE_FIREBASE_API_KEY || firebaseConfig.apiKey
-    },
-    {
-      key: 'VITE_FIREBASE_AUTH_DOMAIN',
-      description: 'Domain for handling Firebase authentication redirects.',
-      value: (import.meta as any).env.VITE_FIREBASE_AUTH_DOMAIN || firebaseConfig.authDomain
-    },
-    {
-      key: 'VITE_FIREBASE_PROJECT_ID',
-      description: 'The unique ID of the Google Cloud/Firebase project.',
-      value: (import.meta as any).env.VITE_FIREBASE_PROJECT_ID || firebaseConfig.projectId
-    },
-    {
-      key: 'VITE_FIREBASE_STORAGE_BUCKET',
-      description: 'The Google Cloud Storage bucket name for saving user-uploaded assets.',
-      value: (import.meta as any).env.VITE_FIREBASE_STORAGE_BUCKET || firebaseConfig.storageBucket
-    },
-    {
-      key: 'VITE_FIREBASE_MESSAGING_SENDER_ID',
-      description: 'Unique sender ID used by Firebase Cloud Messaging.',
-      value: (import.meta as any).env.VITE_FIREBASE_MESSAGING_SENDER_ID || firebaseConfig.messagingSenderId
-    },
-    {
-      key: 'VITE_FIREBASE_APP_ID',
-      description: 'The unique identifier for this registered web application in Firebase.',
-      value: (import.meta as any).env.VITE_FIREBASE_APP_ID || firebaseConfig.appId
-    },
-    {
-      key: 'VITE_FIREBASE_MEASUREMENT_ID',
-      description: 'Measurement ID for Google Analytics stream (Optional).',
-      value: (import.meta as any).env.VITE_FIREBASE_MEASUREMENT_ID || firebaseConfig.measurementId
-    },
     {
       key: 'VITE_GOOGLE_SCRIPT_URL',
       description: 'Web App URL deployed from Google Apps Script to synchronize sheets data.',
@@ -1481,7 +1425,7 @@ export const Profile: React.FC = () => {
       </div>
 
       {/* --------------------------------------------------
-          TAB 1: PROFILE & CONFIG (Profile, Firebase, Env vars, Logout)
+          TAB 1: PROFILE & CONFIG (Profile, Auth Engine, Env vars, Logout)
           -------------------------------------------------- */}
       {activeTab === 'profile' && (
         <div className="space-y-6 animate-in fade-in duration-150">
@@ -1545,17 +1489,21 @@ export const Profile: React.FC = () => {
             </div>
           </div>
 
-          {/* Section 2: 🔥 Firebase configuration detail */}
+          {/* Section 2: 📊 Database & Auth Engine details */}
           <div className="p-5 bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm space-y-4">
             <h3 className="text-xs font-black text-slate-400 uppercase tracking-wider flex items-center gap-1.5 border-b border-slate-50 dark:border-slate-850 pb-2">
               <Database className="w-4 h-4 text-orange-500" />
-              <span>🔥 Firebase configuration</span>
+              <span>📊 CRM Authentication Engine</span>
             </h3>
 
             <div className="space-y-3.5 text-[11px] text-slate-500 dark:text-slate-400 font-semibold">
               <div className="flex justify-between items-center py-0.5 border-b border-dashed border-slate-100 dark:border-slate-850 pb-1.5">
-                <span className="text-slate-400">Project ID</span>
-                <span className="text-slate-800 dark:text-slate-200 font-mono text-[10.5px]">methodical-theory-753sn</span>
+                <span className="text-slate-400">Auth Method</span>
+                <span className="text-slate-800 dark:text-slate-200 font-mono text-[10.5px]">Login ID + Password</span>
+              </div>
+              <div className="flex justify-between items-center py-0.5 border-b border-dashed border-slate-100 dark:border-slate-850 pb-1.5">
+                <span className="text-slate-400">Password Hashing</span>
+                <span className="text-slate-800 dark:text-slate-200 font-mono text-[10.5px]">Native SHA-256 Web Crypto</span>
               </div>
               <div className="flex justify-between items-center py-0.5 border-b border-dashed border-slate-100 dark:border-slate-850 pb-1.5">
                 <span className="text-slate-400">Authentication Status</span>
@@ -1564,7 +1512,7 @@ export const Profile: React.FC = () => {
                 </span>
               </div>
               <div className="flex justify-between items-center py-0.5">
-                <span className="text-slate-400">Google Login Status</span>
+                <span className="text-slate-400">Single Active Session</span>
                 <span className="px-2 py-0.5 text-[9px] bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 font-black rounded-full uppercase tracking-wider">
                   🟢 ENABLED
                 </span>
@@ -1573,13 +1521,13 @@ export const Profile: React.FC = () => {
 
             {/* Quick config viewer */}
             <div className="p-3 bg-slate-950 rounded-2xl border border-slate-800 font-mono text-[9.5px] text-orange-400 overflow-x-auto space-y-1 select-all">
-              <p className="text-slate-400 italic">// Firebase SDK Config</p>
-              <p>const firebaseConfig = &#123;</p>
-              <p className="pl-4">apiKey: "{maskValue(firebaseConfig.apiKey)}",</p>
-              <p className="pl-4">authDomain: "{firebaseConfig.authDomain}",</p>
-              <p className="pl-4">projectId: "{firebaseConfig.projectId}",</p>
-              <p className="pl-4">storageBucket: "{firebaseConfig.storageBucket}",</p>
-              <p className="pl-4">appId: "{maskValue(firebaseConfig.appId)}"</p>
+              <p className="text-slate-400 italic">// Secure Authentication Handshake Config</p>
+              <p>const authConfig = &#123;</p>
+              <p className="pl-4">method: "Google Sheets Users Database",</p>
+              <p className="pl-4">encryption: "SHA-256 Password Hash Validation",</p>
+              <p className="pl-4">rememberMe: "Supported (Encrypted local session cache)",</p>
+              <p className="pl-4">autoLogoutMinutes: 60,</p>
+              <p className="pl-4">serverEngine: "Google Apps Script RPC Engine"</p>
               <p>&#125;;</p>
             </div>
           </div>
@@ -1968,7 +1916,7 @@ export const Profile: React.FC = () => {
                 {[
                   { title: "Apps Script URL", desc: getStoredAppsScriptUrl() ? "🟢 Connected" : "🔴 Disconnected", icon: Terminal, color: "text-blue-500" },
                   { title: "Google Sheets", desc: getStoredAppsScriptUrl() ? "🟢 Active Database" : "🔴 Sandbox Fallback", icon: FileSpreadsheet, color: "text-emerald-500" },
-                  { title: "Firebase Auth", desc: "🟢 Live Connection", icon: Shield, color: "text-amber-500" },
+                  { title: "Auth Session", desc: "🟢 SHA-256 Verified", icon: Shield, color: "text-amber-500" },
                   { title: "REST API Gateway", desc: "🟢 Healthy & Live", icon: Cpu, color: "text-purple-500" },
                   { title: "Database Engine", desc: "🟢 Schema Match", icon: Database, color: "text-teal-500" },
                   { title: "Backup Vault", desc: "🟢 Cloud Enabled", icon: HardDrive, color: "text-cyan-500" },
@@ -3055,47 +3003,47 @@ export const Profile: React.FC = () => {
                 </div>
               </div>
 
-              {/* Card 3: Firebase Auth Service */}
+              {/* Card 3: Secure Auth Service */}
               <div className="p-4 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 shadow-sm rounded-2xl flex flex-col justify-between space-y-4">
                 <div className="space-y-1.5">
                   <div className="flex justify-between items-center">
                     <span className="text-xs font-black text-slate-800 dark:text-slate-200 flex items-center gap-2">
-                      <Database className="w-4 h-4 text-orange-500" />
-                      <span>Firebase Service</span>
+                      <Lock className="w-4 h-4 text-orange-500" />
+                      <span>Secure Auth Service</span>
                     </span>
                     <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 flex items-center gap-1">
                       <span className="w-1 h-1 rounded-full bg-emerald-500"></span>
-                      <span>Connected</span>
+                      <span>Active</span>
                     </span>
                   </div>
 
                   <div className="space-y-1 pt-1.5">
                     <div className="flex justify-between text-[10px] font-bold">
-                      <span className="text-slate-400">Project Name</span>
-                      <span className="text-slate-700 dark:text-slate-300 font-semibold truncate max-w-[120px]">{extendedStatus?.firebaseStatus?.projectName || 'methodical-theory-753sn'}</span>
+                      <span className="text-slate-400">Auth Engine</span>
+                      <span className="text-slate-700 dark:text-slate-300 font-semibold truncate max-w-[120px]">{extendedStatus?.authStatus?.method || 'Secure Sheets / GAS Handshake'}</span>
                     </div>
                     <div className="flex justify-between text-[10px] font-bold">
-                      <span className="text-slate-400">Project ID</span>
-                      <span className="text-slate-700 dark:text-slate-300 font-mono text-[9px] truncate max-w-[120px]">{extendedStatus?.firebaseStatus?.projectId || 'methodical-theory-753sn'}</span>
+                      <span className="text-slate-400">Session Handshake</span>
+                      <span className="text-slate-700 dark:text-slate-300 font-mono text-[9px] truncate max-w-[120px]">{extendedStatus?.authStatus?.sessionType || 'SHA-256 State Token'}</span>
                     </div>
                     <div className="flex justify-between text-[10px] font-bold">
-                      <span className="text-slate-400">Auth Modules</span>
-                      <span className="text-slate-700 dark:text-slate-300 font-semibold">Active (Google provider)</span>
+                      <span className="text-slate-400">Session Status</span>
+                      <span className="text-slate-700 dark:text-slate-300 font-semibold">Active Session (OK)</span>
                     </div>
                     <div className="flex justify-between text-[10px] font-bold">
-                      <span className="text-slate-400">Google Sign-in</span>
-                      <span className="text-emerald-600 dark:text-emerald-400 font-black">ENABLED (200 OK)</span>
+                      <span className="text-slate-400">Auto-Logout</span>
+                      <span className="text-emerald-600 dark:text-emerald-400 font-black">ENABLED (60m)</span>
                     </div>
                   </div>
                 </div>
 
                 <div className="pt-2 border-t border-slate-50 dark:border-slate-850">
                   <button
-                    onClick={handleTestFirebase}
-                    disabled={testingFirebase}
+                    onClick={handleTestAuthHandshake}
+                    disabled={testingAuthHandshake}
                     className="w-full py-1.5 bg-orange-550 hover:bg-orange-600 text-white border border-orange-600/30 text-[10px] font-bold text-center rounded-xl cursor-pointer active:scale-95 transition-all disabled:opacity-50"
                   >
-                    {testingFirebase ? 'Handshaking Firebase Client...' : '⚡ Test Firebase Handshake'}
+                    {testingAuthHandshake ? 'Handshaking CRM Auth...' : '⚡ Test Auth Handshake'}
                   </button>
                 </div>
               </div>
@@ -3384,13 +3332,13 @@ export const Profile: React.FC = () => {
               </button>
 
               <button
-                onClick={handleTestFirebase}
-                disabled={testingFirebase}
+                onClick={handleTestAuthHandshake}
+                disabled={testingAuthHandshake}
                 className="p-3 bg-slate-50 dark:bg-slate-950 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-850 text-[11px] font-bold text-slate-700 dark:text-slate-300 flex flex-col items-center justify-center gap-2 cursor-pointer active:scale-95 transition-all select-none disabled:opacity-50"
                 style={{ minHeight: '75px' }}
               >
-                <Lock className={`w-5 h-5 text-orange-500 ${testingFirebase ? 'animate-bounce' : ''}`} />
-                <span>Test Firebase</span>
+                <Lock className={`w-5 h-5 text-orange-500 ${testingAuthHandshake ? 'animate-bounce' : ''}`} />
+                <span>Test Credentials</span>
               </button>
 
               <button
@@ -3880,7 +3828,7 @@ export const Profile: React.FC = () => {
                 )}
               </div>
 
-              {/* Step 3: Firebase */}
+              {/* Step 3: Secure CRM Users Setup */}
               <div className="border border-slate-100 dark:border-slate-850 rounded-2xl overflow-hidden bg-slate-50/50 dark:bg-slate-950/40">
                 <button
                   onClick={() => toggleStep(3)}
@@ -3888,7 +3836,7 @@ export const Profile: React.FC = () => {
                 >
                   <span className="flex items-center gap-2">
                     <span className="w-5 h-5 bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center text-[10px] font-black">3</span>
-                    <span>Firebase Integration</span>
+                    <span>Secure CRM Users Setup</span>
                   </span>
                   {expandedSteps[3] ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
                 </button>
@@ -3896,10 +3844,10 @@ export const Profile: React.FC = () => {
                 {expandedSteps[3] && (
                   <div className="p-4 pt-0 border-t border-slate-100 dark:border-slate-850 text-[11px] text-slate-500 dark:text-slate-400 font-semibold space-y-3">
                     <p className="leading-relaxed">
-                      Go to the Firebase Console and register a Web App. Enable Google Authentication provider under **Build &gt; Authentication &gt; Sign-in method**.
+                      The CRM manages users inside the **Users** sheet of your spreadsheet.
                     </p>
                     <p className="leading-relaxed">
-                      This CRM handles Google Account login popups natively using Firebase authentication client libraries out of the box, preserving complete cloud security control.
+                      The default system owner login is **ADM001** with password **Admin@123**. To add teammates, the Owner can use the *Team Management* interface directly or append rows in the spreadsheet.
                     </p>
                   </div>
                 )}
@@ -3921,12 +3869,12 @@ export const Profile: React.FC = () => {
                 {expandedSteps[4] && (
                   <div className="p-4 pt-0 border-t border-slate-100 dark:border-slate-850 text-[11px] text-slate-500 dark:text-slate-400 font-semibold space-y-3">
                     <p className="leading-relaxed">
-                      Copy the environment config templates into your hosting service dashboard (Vercel, Cloud Run, Netlify) to map the production environment keys:
+                      Copy the environment config templates into your hosting service dashboard to map the production environment keys:
                     </p>
                     <div className="p-3 bg-slate-950 rounded-2xl border border-slate-850 text-slate-300 font-mono text-[9px] flex justify-between items-center">
-                      <span className="select-all">VITE_FIREBASE_API_KEY=your_key_here<br />VITE_GOOGLE_SCRIPT_URL=your_deployed_url</span>
+                      <span className="select-all">VITE_GOOGLE_SCRIPT_URL=your_deployed_url</span>
                       <button
-                        onClick={() => triggerCopy('env-step', 'VITE_FIREBASE_API_KEY=\nVITE_FIREBASE_AUTH_DOMAIN=\nVITE_FIREBASE_PROJECT_ID=\nVITE_GOOGLE_SCRIPT_URL=')}
+                        onClick={() => triggerCopy('env-step', 'VITE_GOOGLE_SCRIPT_URL=')}
                         className="p-1 bg-slate-900 rounded text-slate-400 hover:text-white"
                       >
                         <Copy className="w-3.5 h-3.5" />

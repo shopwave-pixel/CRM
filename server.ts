@@ -1519,13 +1519,13 @@ async function startServer() {
       totalUsers: db.users ? db.users.length : 0
     };
 
-    // Firebase Status
-    const firebaseStatus = {
-      status: 'Connected',
-      projectName: 'methodical-theory-753sn',
-      projectId: 'methodical-theory-753sn',
-      authEnabled: true,
-      googleSignInEnabled: true
+    // Integrated Apps Script & Sheets Auth Status
+    const authStatus = {
+      status: 'Active',
+      method: 'Google Apps Script / Sheets Secure Handshake',
+      sessionType: 'Secure SHA-256 State Token',
+      autoLogoutMinutes: 60,
+      rememberMeSupported: true
     };
 
     // API Status
@@ -1566,7 +1566,7 @@ async function startServer() {
     return res.json({
       sheetsStatus,
       appsScriptStatus,
-      firebaseStatus,
+      authStatus,
       dbStatus,
       apiStatus,
       backupStatus,
