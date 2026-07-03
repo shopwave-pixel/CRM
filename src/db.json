@@ -1,0 +1,121 @@
+{
+  "users": [
+    {
+      "email": "mrinal2192@gmail.com",
+      "name": "Mrinal",
+      "role": "Admin",
+      "status": "Active"
+    },
+    {
+      "email": "crm.agent@example.com",
+      "name": "Sarah Connor",
+      "role": "Agent",
+      "status": "Active"
+    }
+  ],
+  "clients": [
+    {
+      "clientId": "CLI-1001",
+      "name": "Acme Corp Tech",
+      "phone": "+1-555-0199",
+      "company": "Acme Corporation",
+      "status": "Customer",
+      "totalTickets": 2,
+      "nextFollowUp": "2026-07-05",
+      "lastContact": "2026-06-30T10:00:00.000Z",
+      "createdAt": "2026-06-01T08:30:00.000Z",
+      "updatedAt": "2026-06-30T10:30:00.000Z"
+    },
+    {
+      "clientId": "CLI-1002",
+      "name": "John Doe",
+      "phone": "+1-555-0142",
+      "company": "Freelance",
+      "status": "Interested",
+      "totalTickets": 1,
+      "nextFollowUp": "2026-06-30",
+      "lastContact": "2026-06-29T14:20:00.000Z",
+      "createdAt": "2026-06-15T09:00:00.000Z",
+      "updatedAt": "2026-06-29T14:45:00.000Z"
+    },
+    {
+      "clientId": "CLI-1003",
+      "name": "Lex Corp",
+      "phone": "+1-555-0187",
+      "company": "Lex Enterprises",
+      "status": "New",
+      "totalTickets": 0,
+      "nextFollowUp": "2026-07-01",
+      "lastContact": "",
+      "createdAt": "2026-06-30T11:15:00.000Z",
+      "updatedAt": "2026-06-30T11:15:00.000Z"
+    }
+  ],
+  "tickets": [
+    {
+      "ticketId": "TKT-1001",
+      "clientId": "CLI-1001",
+      "title": "Onboarding & Integration Setup",
+      "description": "Set up corporate accounts, configure workspaces and sync permissions.",
+      "priority": "High",
+      "status": "Follow Up",
+      "createdDate": "2026-06-02T10:00:00.000Z",
+      "lastUpdated": "2026-06-30T10:30:00.000Z",
+      "nextFollowUp": "2026-07-05",
+      "totalConversations": 2
+    },
+    {
+      "ticketId": "TKT-1002",
+      "clientId": "CLI-1001",
+      "title": "Billing Query - Annual Discount",
+      "description": "Client requested details about the 15% discount for annual contract billing.",
+      "priority": "Medium",
+      "status": "Open",
+      "createdDate": "2026-06-28T09:15:00.000Z",
+      "lastUpdated": "2026-06-28T09:15:00.000Z",
+      "nextFollowUp": "2026-07-02",
+      "totalConversations": 0
+    },
+    {
+      "ticketId": "TKT-1003",
+      "clientId": "CLI-1002",
+      "title": "Product Demo Scheduling",
+      "description": "Follow up regarding scheduling a product demo for the marketing team.",
+      "priority": "Low",
+      "status": "Pending",
+      "createdDate": "2026-06-20T11:00:00.000Z",
+      "lastUpdated": "2026-06-29T14:45:00.000Z",
+      "nextFollowUp": "2026-06-30",
+      "totalConversations": 1
+    }
+  ],
+  "conversations": [
+    {
+      "conversationId": "CONV-1001",
+      "ticketId": "TKT-1001",
+      "dateTime": "2026-06-02T11:30:00.000Z",
+      "conversationNote": "Initial kickoff call. Set goals and milestones. Corporate domain verified.",
+      "nextFollowUp": "2026-06-15",
+      "createdBy": "Sarah Connor",
+      "userEmail": "crm.agent@example.com"
+    },
+    {
+      "conversationId": "CONV-1002",
+      "ticketId": "TKT-1001",
+      "dateTime": "2026-06-30T10:30:00.000Z",
+      "conversationNote": "Configured corporate workspace. Scheduled followup for final integrations review.",
+      "nextFollowUp": "2026-07-05",
+      "createdBy": "Sarah Connor",
+      "userEmail": "crm.agent@example.com"
+    },
+    {
+      "conversationId": "CONV-1003",
+      "ticketId": "TKT-1003",
+      "dateTime": "2026-06-29T14:45:00.000Z",
+      "conversationNote": "Spoke to John on the phone. He is interested in the marketing module. He requested a demo next Tuesday.",
+      "nextFollowUp": "2026-06-30",
+      "createdBy": "Sarah Connor",
+      "userEmail": "crm.agent@example.com"
+    }
+  ]
+}
