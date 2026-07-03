@@ -743,10 +743,11 @@ async function startServer() {
         const result = await callAppsScript(gasUrl, { action: 'addClient', ...clientData }, 'POST');
         return res.json(result);
       } catch (err: any) {
-        return res.status(500).json({ error: 'Failed to add Client to Sheets API', details: err.message });
+        console.log('[Sheets Sync] Info: Failed to add Client to Sheets API, falling back to local DB:', err.message);
       }
-    } else {
-      const db = await readLocalDB();
+    }
+
+    const db = await readLocalDB();
       
       // Validate and format Bangladeshi phone number
       const phoneValidation = validateAndFormatBDPhone(clientData.phone || '');
@@ -794,7 +795,6 @@ async function startServer() {
       await writeLocalDB(db);
 
       return res.json({ success: true, client: newClient });
-    }
   });
 
   // API Route: Update Client
@@ -809,10 +809,11 @@ async function startServer() {
         const result = await callAppsScript(gasUrl, { action: 'updateClient', ...updateData }, 'POST');
         return res.json(result);
       } catch (err: any) {
-        return res.status(500).json({ error: 'Failed to update Client in Sheets API', details: err.message });
+        console.log('[Sheets Sync] Info: Failed to update Client in Sheets API, falling back to local DB:', err.message);
       }
-    } else {
-      const db = await readLocalDB();
+    }
+
+    const db = await readLocalDB();
       const index = db.clients.findIndex((c: any) => c.clientId === updateData.id);
       if (index === -1) {
         return res.status(404).json({ error: 'Client not found' });
@@ -846,7 +847,6 @@ async function startServer() {
       await writeLocalDB(db);
 
       return res.json({ success: true });
-    }
   });
 
   // API Route: Delete Client
@@ -866,10 +866,11 @@ async function startServer() {
         const result = await callAppsScript(gasUrl, { action: 'deleteClient', id }, 'POST');
         return res.json(result);
       } catch (err: any) {
-        return res.status(500).json({ error: 'Failed to delete Client in Sheets API', details: err.message });
+        console.log('[Sheets Sync] Info: Failed to delete Client in Sheets API, falling back to local DB:', err.message);
       }
-    } else {
-      const db = await readLocalDB();
+    }
+
+    const db = await readLocalDB();
       const index = db.clients.findIndex((c: any) => c.clientId === id);
       if (index === -1) {
         return res.status(404).json({ error: 'Client not found' });
@@ -890,7 +891,6 @@ async function startServer() {
 
       await writeLocalDB(db);
       return res.json({ success: true });
-    }
   });
 
   // API Route: Tickets (GET & POST)
@@ -925,10 +925,11 @@ async function startServer() {
         const result = await callAppsScript(gasUrl, { action: 'addTicket', ...ticketData }, 'POST');
         return res.json(result);
       } catch (err: any) {
-        return res.status(500).json({ error: 'Failed to add Ticket to Sheets API', details: err.message });
+        console.log('[Sheets Sync] Info: Failed to add Ticket to Sheets API, falling back to local DB:', err.message);
       }
-    } else {
-      const db = await readLocalDB();
+    }
+
+    const db = await readLocalDB();
       let nextId = 1001;
       if (db.tickets.length > 0) {
         const ids = db.tickets.map((t: any) => {
@@ -969,7 +970,6 @@ async function startServer() {
       await writeLocalDB(db);
 
       return res.json({ success: true, ticket: newTicket });
-    }
   });
 
   // API Route: Update Ticket
@@ -984,10 +984,11 @@ async function startServer() {
         const result = await callAppsScript(gasUrl, { action: 'updateTicket', ...updateData }, 'POST');
         return res.json(result);
       } catch (err: any) {
-        return res.status(500).json({ error: 'Failed to update Ticket in Sheets API', details: err.message });
+        console.log('[Sheets Sync] Info: Failed to update Ticket in Sheets API, falling back to local DB:', err.message);
       }
-    } else {
-      const db = await readLocalDB();
+    }
+
+    const db = await readLocalDB();
       const index = db.tickets.findIndex((t: any) => t.ticketId === updateData.id);
       if (index === -1) {
         return res.status(404).json({ error: 'Ticket not found' });
@@ -1017,7 +1018,6 @@ async function startServer() {
       await writeLocalDB(db);
 
       return res.json({ success: true });
-    }
   });
 
   // API Route: Conversations (GET & POST)
@@ -1054,10 +1054,11 @@ async function startServer() {
         const result = await callAppsScript(gasUrl, { action: 'addConversation', ...convData }, 'POST');
         return res.json(result);
       } catch (err: any) {
-        return res.status(500).json({ error: 'Failed to add Conversation to Sheets API', details: err.message });
+        console.log('[Sheets Sync] Info: Failed to add Conversation to Sheets API, falling back to local DB:', err.message);
       }
-    } else {
-      const db = await readLocalDB();
+    }
+
+    const db = await readLocalDB();
       let nextId = 1001;
       if (db.conversations.length > 0) {
         const ids = db.conversations.map((c: any) => {
@@ -1106,7 +1107,6 @@ async function startServer() {
       await writeLocalDB(db);
 
       return res.json({ success: true, conversation: newConversation });
-    }
   });
 
   // API Route: Users (GET & POST) - PROTECTED (Owner Only)
@@ -1234,10 +1234,11 @@ async function startServer() {
         }, 'POST');
         return res.json(result);
       } catch (err: any) {
-        return res.status(500).json({ error: 'Failed to manage User in Sheets API', details: err.message });
+        console.log('[Sheets Sync] Info: Failed to manage User in Sheets API, falling back to local DB:', err.message);
       }
-    } else {
-      const db = await readLocalDB();
+    }
+
+    const db = await readLocalDB();
       db.users = db.users || [];
       
       let loginId = userData.loginId;
@@ -1316,7 +1317,6 @@ async function startServer() {
       await writeLocalDB(db);
 
       return res.json({ success: true, added: true });
-    }
   });
 
   // API Route: Delete User - PROTECTED (Owner Only)
@@ -1340,14 +1340,14 @@ async function startServer() {
         const result = await callAppsScript(gasUrl, { action: 'deleteUser', loginId }, 'POST');
         return res.json(result);
       } catch (err: any) {
-        return res.status(500).json({ error: 'Failed to delete User in Sheets API', details: err.message });
+        console.log('[Sheets Sync] Info: Failed to delete User in Sheets API, falling back to local DB:', err.message);
       }
-    } else {
-      const db = await readLocalDB();
+    }
+
+    const db = await readLocalDB();
       db.users = db.users.filter((u: any) => (u.loginId || '').toUpperCase() !== (loginId || '').toUpperCase());
       await writeLocalDB(db);
       return res.json({ success: true });
-    }
   });
 
   // API Route: Get Activity Logs - PROTECTED (Owner Only)
