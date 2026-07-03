@@ -32,6 +32,7 @@ export interface SyncLogItem {
 class OfflineDb {
   private db: IDBDatabase | null = null;
   private useMemoryFallback = false;
+  private initPromise: Promise<void> | null = null;
   private memoryDb: Record<string, Map<string, any>> = {
     clients: new Map(),
     tickets: new Map(),
@@ -109,7 +110,11 @@ class OfflineDb {
   }
 
   init(): Promise<void> {
-    return new Promise((resolve) => {
+    if (this.initPromise) {
+      return this.initPromise;
+    }
+
+    this.initPromise = new Promise((resolve) => {
       if (this.db || this.useMemoryFallback) return resolve();
 
       try {
@@ -164,6 +169,8 @@ class OfflineDb {
         resolve();
       }
     });
+
+    return this.initPromise;
   }
 
   private getStore(storeName: string, mode: IDBTransactionMode): IDBObjectStore {

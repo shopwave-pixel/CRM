@@ -75,7 +75,7 @@ export const OfflineProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setStats(prev => ({
         ...prev,
         ...cachedStats,
-        internetStatus: isOffline ? 'Offline' : 'Online',
+        internetStatus: navigator.onLine ? 'Online' : 'Offline',
         pendingQueueSize: pendingSize,
         failedQueueSize: failedSize
       }));
@@ -124,7 +124,7 @@ export const OfflineProvider: React.FC<{ children: React.ReactNode }> = ({ child
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
-  }, [isOffline]);
+  }, []);
 
   // Synchronize a single action item
   const syncItem = async (item: SyncQueueItem): Promise<{ success: boolean; conflict?: boolean; serverRecord?: any; error?: string }> => {
