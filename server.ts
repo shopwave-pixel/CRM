@@ -1474,6 +1474,8 @@ async function startServer() {
       lastDeployment: 'N/A'
     };
 
+    let diagnostics = null;
+
     if (gasUrl) {
       try {
         const sysInfo = await callAppsScript(gasUrl, { action: 'getSystemInfo' }, 'GET');
@@ -1494,6 +1496,8 @@ async function startServer() {
             deploymentVersion: sysInfo.deploymentVersion || 'v3.5.0-Enterprise',
             lastDeployment: sysInfo.lastDeployment || getBangladeshDateTimeString()
           };
+
+          diagnostics = sysInfo.diagnostics || null;
         } else {
           appsScriptStatus.webAppUrl = gasUrl;
           appsScriptStatus.status = 'Disconnected';
@@ -1572,7 +1576,8 @@ async function startServer() {
       backupStatus,
       storageStatus,
       applicationStatus,
-      overallHealth
+      overallHealth,
+      diagnostics
     });
   });
 

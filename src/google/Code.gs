@@ -18,9 +18,17 @@ if (typeof globalRef.getSpreadsheet !== 'function') {
     try {
       var prop = PropertiesService.getScriptProperties().getProperty("SPREADSHEET_ID");
       if (prop) {
-        return SpreadsheetApp.openById(prop);
+        try {
+          var ss = SpreadsheetApp.openById(prop);
+          if (ss) return ss;
+        } catch (openErr) {}
       }
     } catch (e) {}
+    try {
+      var newSS = SpreadsheetApp.create("Enterprise CRM Database");
+      PropertiesService.getScriptProperties().setProperty("SPREADSHEET_ID", newSS.getId());
+      return SpreadsheetApp.openById(newSS.getId());
+    } catch (createErr) {}
     return null;
   };
 }

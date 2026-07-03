@@ -12,9 +12,19 @@ function getSpreadsheet() {
   try {
     var prop = PropertiesService.getScriptProperties().getProperty("SPREADSHEET_ID");
     if (prop) {
-      return SpreadsheetApp.openById(prop);
+      try {
+        var ss = SpreadsheetApp.openById(prop);
+        if (ss) return ss;
+      } catch (openErr) {}
     }
   } catch (e) {}
+  
+  // Self Healing: Automatically create a new spreadsheet if we cannot find one
+  try {
+    var newSS = SpreadsheetApp.create("Enterprise CRM Database");
+    PropertiesService.getScriptProperties().setProperty("SPREADSHEET_ID", newSS.getId());
+    return SpreadsheetApp.openById(newSS.getId());
+  } catch (createErr) {}
   
   return null;
 }
@@ -72,11 +82,26 @@ function initSheets(ss) {
         sheet.setFrozenRows(1);
       } else {
         // Ensure columns match headers (migration/extension of sheets and auto-repair)
-        var lastColumn = sheet.getLastColumn();
+        var values = sheet.getDataRange().getValues();
+        var currentHeaders = values[0] || [];
         var expectedHeaders = HEADERS[key];
-        if (lastColumn < expectedHeaders.length) {
-          var missingHeaders = expectedHeaders.slice(lastColumn);
-          sheet.getRange(1, lastColumn + 1, 1, missingHeaders.length).setValues([missingHeaders]);
+        
+        // Find missing headers
+        var missingHeaders = [];
+        for (var h = 0; h < expectedHeaders.length; h++) {
+          var expected = expectedHeaders[h];
+          if (currentHeaders.indexOf(expected) === -1) {
+            missingHeaders.push(expected);
+          }
+        }
+        
+        if (missingHeaders.length > 0) {
+          var lastColumn = sheet.getLastColumn();
+          if (lastColumn === 0) {
+            sheet.appendRow(expectedHeaders);
+          } else {
+            sheet.getRange(1, lastColumn + 1, 1, missingHeaders.length).setValues([missingHeaders]);
+          }
         }
       }
     }
@@ -87,29 +112,56 @@ function initSheets(ss) {
 function initializeDatabase(ss, postData) {
   try {
     var now = getBangladeshDateTimeString();
-    var ownerEmail = (postData.ownerEmail || "mrinal2192@gmail.com").toString().trim().toLowerCase();
-    var ownerName = postData.ownerName || "System Owner";
+    var ownerEmail = (postData && postData.ownerEmail || "mrinal2192@gmail.com").toString().trim().toLowerCase();
+    var ownerName = (postData && postData.ownerName) || "System Owner";
     
-    // If spreadsheet is not found, automatically create a new one in the owner's Google Drive
+    // Save Spreadsheet ID into Script Properties as SPREADSHEET_ID.
+    // If spreadsheet does not exist or cannot be opened, automatically create one.
+    if (!ss) {
+      var prop = PropertiesService.getScriptProperties().getProperty("SPREADSHEET_ID");
+      if (prop) {
+        try {
+          ss = SpreadsheetApp.openById(prop);
+        } catch (openErr) {
+          ss = null;
+        }
+      }
+    }
+    
     if (!ss) {
       try {
         ss = SpreadsheetApp.create("Enterprise CRM Database");
         PropertiesService.getScriptProperties().setProperty("SPREADSHEET_ID", ss.getId());
+        ss = SpreadsheetApp.openById(ss.getId());
       } catch (e) {
         return { success: false, error: "Failed to automatically create spreadsheet. Please check your Apps Script execution permissions: " + e.toString() };
       }
     }
     
-    // Ensure all 10 sheets and headers are created
+    // Re-verify spreadsheet exists and is open
+    if (!ss) {
+      return { success: false, error: "Spreadsheet creation failed or is unavailable." };
+    }
+    
+    // Ensure all 10 sheets and headers are created and verified
     initSheets(ss);
     
     // Create default settings in Settings sheet if it is empty
     var settingsSheet = ss.getSheetByName("Settings");
     if (settingsSheet) {
       var values = settingsSheet.getDataRange().getValues();
-      if (values.length <= 1) {
+      var keys = {};
+      for (var r = 1; r < values.length; r++) {
+        var k = values[r][0];
+        if (k) keys[k] = true;
+      }
+      if (!keys["timezone"]) {
         settingsSheet.appendRow(["timezone", "Asia/Dhaka", "System Timezone", now]);
+      }
+      if (!keys["system_name"]) {
         settingsSheet.appendRow(["system_name", "Enterprise CRM", "Name of the application", now]);
+      }
+      if (!keys["owner_email"]) {
         settingsSheet.appendRow(["owner_email", ownerEmail, "Primary Owner Email", now]);
       }
     }
@@ -161,6 +213,70 @@ function initializeDatabase(ss, postData) {
 }
 
 function getSystemInfo(sheet) {
+  var diag = {
+    appsScript: "Healthy",
+    spreadsheet: "Disconnected",
+    scriptProperties: "Missing",
+    usersSheet: "Missing",
+    clientsSheet: "Missing",
+    ticketsSheet: "Missing",
+    conversationsSheet: "Missing",
+    followUpsSheet: "Missing",
+    callLogsSheet: "Missing",
+    dashboardSheet: "Missing",
+    settingsSheet: "Missing",
+    archivedClientsSheet: "Missing",
+    ownerAccount: "Missing"
+  };
+  
+  try {
+    var prop = PropertiesService.getScriptProperties().getProperty("SPREADSHEET_ID");
+    if (prop) {
+      diag.scriptProperties = "Configured";
+    }
+  } catch (e) {}
+  
+  if (sheet) {
+    diag.spreadsheet = "Connected";
+    
+    // Map of sheet names configuration keys to diagnostics response keys
+    var sheetsList = {
+      USERS: "usersSheet",
+      CLIENTS: "clientsSheet",
+      TICKETS: "ticketsSheet",
+      CONVERSATIONS: "conversationsSheet",
+      FOLLOWUPS: "followUpsSheet",
+      CALLLOGS: "callLogsSheet",
+      DASHBOARD: "dashboardSheet",
+      SETTINGS: "settingsSheet",
+      ARCHIVED_CLIENTS: "archivedClientsSheet"
+    };
+    
+    for (var key in SHEET_NAMES) {
+      if (SHEET_NAMES.hasOwnProperty(key)) {
+        var name = SHEET_NAMES[key];
+        var s = sheet.getSheetByName(name);
+        var diagKey = sheetsList[key];
+        if (s && diagKey) {
+          diag[diagKey] = "Active";
+        }
+      }
+    }
+    
+    // Check Owner Account ADM001
+    try {
+      var users = getSheetData(sheet, SHEET_NAMES.USERS);
+      for (var i = 0; i < users.length; i++) {
+        var u = users[i];
+        var uId = u.loginId || u["Login ID"] || "";
+        if (uId.toString().toUpperCase() === "ADM001") {
+          diag.ownerAccount = "Created";
+          break;
+        }
+      }
+    } catch (e) {}
+  }
+  
   return {
     status: "Healthy",
     spreadsheetName: sheet ? sheet.getName() : "N/A",
@@ -168,6 +284,7 @@ function getSystemInfo(sheet) {
     totalSheets: sheet ? sheet.getSheets().length : 0,
     lastSync: getBangladeshDateTimeString(new Date()),
     deploymentVersion: "v3.5.0-Enterprise",
-    lastDeployment: getBangladeshDateTimeString(new Date())
+    lastDeployment: getBangladeshDateTimeString(new Date()),
+    diagnostics: diag
   };
 }
