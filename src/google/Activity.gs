@@ -9,6 +9,7 @@ function getActivityLogs(sheet) {
 
 function logActivity(sheet, email, action, details, employeeCode) {
   try {
+    if (!sheet) return { success: false, error: "Spreadsheet database is not configured/found." };
     var logsSheet = sheet.getSheetByName(SHEET_NAMES.ACTIVITY_LOGS);
     var now = getBangladeshDateTimeString();
     var empCode = employeeCode || "";

@@ -25,6 +25,7 @@ function jsonResponse(data) {
 }
 
 function getSheetData(ss, sheetName) {
+  if (!ss) return [];
   var s = ss.getSheetByName(sheetName);
   if (!s) return [];
   
@@ -55,6 +56,7 @@ function getSheetData(ss, sheetName) {
 }
 
 function initSheets(ss) {
+  if (!ss) return;
   for (var key in SHEET_NAMES) {
     if (SHEET_NAMES.hasOwnProperty(key)) {
       var name = SHEET_NAMES[key];
@@ -90,10 +92,12 @@ function initializeDatabase(ss, postData) {
     
     // If spreadsheet is not found, automatically create a new one in the owner's Google Drive
     if (!ss) {
-      ss = SpreadsheetApp.create("Enterprise CRM Database");
       try {
+        ss = SpreadsheetApp.create("Enterprise CRM Database");
         PropertiesService.getScriptProperties().setProperty("SPREADSHEET_ID", ss.getId());
-      } catch (e) {}
+      } catch (e) {
+        return { success: false, error: "Failed to automatically create spreadsheet. Please check your Apps Script execution permissions: " + e.toString() };
+      }
     }
     
     // Ensure all 10 sheets and headers are created

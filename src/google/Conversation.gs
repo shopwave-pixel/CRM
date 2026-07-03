@@ -8,6 +8,7 @@ function getConversations(sheet) {
 }
 
 function addConversation(sheet, data) {
+  if (!sheet) return { success: false, error: "Spreadsheet database is not configured/found." };
   var conversationsSheet = sheet.getSheetByName(SHEET_NAMES.CONVERSATIONS);
   var now = getBangladeshDateTimeString();
   var convId = "CONV-" + Utilities.getUuid().substring(0, 8).toUpperCase();

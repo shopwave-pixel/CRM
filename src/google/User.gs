@@ -25,6 +25,7 @@ function getUsers(sheet) {
 }
 
 function addUser(sheet, data) {
+  if (!sheet) return { success: false, error: "Spreadsheet database is not configured/found." };
   var s = sheet.getSheetByName(SHEET_NAMES.USERS);
   var values = s.getDataRange().getValues();
   var headers = values[0];
@@ -84,6 +85,7 @@ function addUser(sheet, data) {
 }
 
 function deleteUser(sheet, loginId) {
+  if (!sheet) return { success: false, error: "Spreadsheet database is not configured/found." };
   var s = sheet.getSheetByName(SHEET_NAMES.USERS);
   var values = s.getDataRange().getValues();
   var loginIdCol = values[0].indexOf("Login ID");
@@ -104,6 +106,7 @@ function deleteUser(sheet, loginId) {
 }
 
 function updateUserField(sheet, loginId, fieldName, value) {
+  if (!sheet) return;
   var s = sheet.getSheetByName(SHEET_NAMES.USERS);
   var values = s.getDataRange().getValues();
   var headers = values[0];

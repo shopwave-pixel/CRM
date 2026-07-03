@@ -8,6 +8,7 @@ function getTickets(sheet) {
 }
 
 function addTicket(sheet, data) {
+  if (!sheet) return { success: false, error: "Spreadsheet database is not configured/found." };
   var ticketsSheet = sheet.getSheetByName(SHEET_NAMES.TICKETS);
   var now = getBangladeshDateTimeString();
   var ticketId = "TCK-" + Utilities.getUuid().substring(0, 8).toUpperCase();
@@ -40,6 +41,7 @@ function addTicket(sheet, data) {
 }
 
 function updateTicket(sheet, data) {
+  if (!sheet) return { success: false, error: "Spreadsheet database is not configured/found." };
   var s = sheet.getSheetByName(SHEET_NAMES.TICKETS);
   var values = s.getDataRange().getValues();
   var headers = values[0];
@@ -64,6 +66,7 @@ function updateTicket(sheet, data) {
 }
 
 function updateTicketFromConversation(sheet, ticketId, nextFollowUp) {
+  if (!sheet) return;
   var s = sheet.getSheetByName(SHEET_NAMES.TICKETS);
   var values = s.getDataRange().getValues();
   var headers = values[0];

@@ -8,6 +8,7 @@ function getClients(sheet) {
 }
 
 function addClient(sheet, data) {
+  if (!sheet) return { success: false, error: "Spreadsheet database is not configured/found." };
   var clientsSheet = sheet.getSheetByName(SHEET_NAMES.CLIENTS);
   var now = getBangladeshDateTimeString();
   var clientId = "CLI-" + Utilities.getUuid().substring(0, 8).toUpperCase();
@@ -44,6 +45,7 @@ function addClient(sheet, data) {
 }
 
 function updateClient(sheet, data) {
+  if (!sheet) return { success: false, error: "Spreadsheet database is not configured/found." };
   var s = sheet.getSheetByName(SHEET_NAMES.CLIENTS);
   var values = s.getDataRange().getValues();
   var headers = values[0];
@@ -76,6 +78,7 @@ function updateClient(sheet, data) {
 }
 
 function deleteClient(sheet, id) {
+  if (!sheet) return { success: false, error: "Spreadsheet database is not configured/found." };
   var s = sheet.getSheetByName(SHEET_NAMES.CLIENTS);
   var values = s.getDataRange().getValues();
   var idCol = values[0].indexOf("Client ID");
@@ -90,6 +93,7 @@ function deleteClient(sheet, id) {
 }
 
 function updateClientTicketCount(sheet, clientId) {
+  if (!sheet) return;
   var s = sheet.getSheetByName(SHEET_NAMES.CLIENTS);
   var values = s.getDataRange().getValues();
   var headers = values[0];

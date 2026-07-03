@@ -364,6 +364,7 @@ function getClients(sheet) {
 }
 
 function addClient(sheet, data) {
+  if (!sheet) return { success: false, error: "Spreadsheet database is not configured/found." };
   var clientsSheet = sheet.getSheetByName(SHEET_NAMES.CLIENTS);
   var now = getBangladeshDateTimeString();
   var clientId = "CLI-" + Utilities.getUuid().substring(0, 8).toUpperCase();
@@ -400,6 +401,7 @@ function addClient(sheet, data) {
 }
 
 function updateClient(sheet, data) {
+  if (!sheet) return { success: false, error: "Spreadsheet database is not configured/found." };
   var s = sheet.getSheetByName(SHEET_NAMES.CLIENTS);
   var values = s.getDataRange().getValues();
   var headers = values[0];
@@ -432,6 +434,7 @@ function updateClient(sheet, data) {
 }
 
 function deleteClient(sheet, id) {
+  if (!sheet) return { success: false, error: "Spreadsheet database is not configured/found." };
   var s = sheet.getSheetByName(SHEET_NAMES.CLIENTS);
   var values = s.getDataRange().getValues();
   var idCol = values[0].indexOf("Client ID");
@@ -446,6 +449,7 @@ function deleteClient(sheet, id) {
 }
 
 function updateClientTicketCount(sheet, clientId) {
+  if (!sheet) return;
   var s = sheet.getSheetByName(SHEET_NAMES.CLIENTS);
   var values = s.getDataRange().getValues();
   var headers = values[0];
@@ -477,6 +481,7 @@ function getTickets(sheet) {
 }
 
 function addTicket(sheet, data) {
+  if (!sheet) return { success: false, error: "Spreadsheet database is not configured/found." };
   var ticketsSheet = sheet.getSheetByName(SHEET_NAMES.TICKETS);
   var now = getBangladeshDateTimeString();
   var ticketId = "TCK-" + Utilities.getUuid().substring(0, 8).toUpperCase();
@@ -509,6 +514,7 @@ function addTicket(sheet, data) {
 }
 
 function updateTicket(sheet, data) {
+  if (!sheet) return { success: false, error: "Spreadsheet database is not configured/found." };
   var s = sheet.getSheetByName(SHEET_NAMES.TICKETS);
   var values = s.getDataRange().getValues();
   var headers = values[0];
@@ -533,6 +539,7 @@ function updateTicket(sheet, data) {
 }
 
 function updateTicketFromConversation(sheet, ticketId, nextFollowUp) {
+  if (!sheet) return;
   var s = sheet.getSheetByName(SHEET_NAMES.TICKETS);
   var values = s.getDataRange().getValues();
   var headers = values[0];
@@ -571,6 +578,7 @@ function getConversations(sheet) {
 }
 
 function addConversation(sheet, data) {
+  if (!sheet) return { success: false, error: "Spreadsheet database is not configured/found." };
   var conversationsSheet = sheet.getSheetByName(SHEET_NAMES.CONVERSATIONS);
   var now = getBangladeshDateTimeString();
   var convId = "CONV-" + Utilities.getUuid().substring(0, 8).toUpperCase();
@@ -803,6 +811,7 @@ function getUsers(sheet) {
 }
 
 function addUser(sheet, data) {
+  if (!sheet) return { success: false, error: "Spreadsheet database is not configured/found." };
   var s = sheet.getSheetByName(SHEET_NAMES.USERS);
   var values = s.getDataRange().getValues();
   var headers = values[0];
@@ -862,6 +871,7 @@ function addUser(sheet, data) {
 }
 
 function deleteUser(sheet, loginId) {
+  if (!sheet) return { success: false, error: "Spreadsheet database is not configured/found." };
   var s = sheet.getSheetByName(SHEET_NAMES.USERS);
   var values = s.getDataRange().getValues();
   var loginIdCol = values[0].indexOf("Login ID");
@@ -882,6 +892,7 @@ function deleteUser(sheet, loginId) {
 }
 
 function updateUserField(sheet, loginId, fieldName, value) {
+  if (!sheet) return;
   var s = sheet.getSheetByName(SHEET_NAMES.USERS);
   var values = s.getDataRange().getValues();
   var headers = values[0];
@@ -916,6 +927,7 @@ function getActivityLogs(sheet) {
 
 function logActivity(sheet, email, action, details, employeeCode) {
   try {
+    if (!sheet) return { success: false, error: "Spreadsheet database is not configured/found." };
     var logsSheet = sheet.getSheetByName(SHEET_NAMES.ACTIVITY_LOGS);
     var now = getBangladeshDateTimeString();
     var empCode = employeeCode || "";
@@ -1182,6 +1194,7 @@ function jsonResponse(data) {
 }
 
 function getSheetData(ss, sheetName) {
+  if (!ss) return [];
   var s = ss.getSheetByName(sheetName);
   if (!s) return [];
   
@@ -1212,6 +1225,7 @@ function getSheetData(ss, sheetName) {
 }
 
 function initSheets(ss) {
+  if (!ss) return;
   for (var key in SHEET_NAMES) {
     if (SHEET_NAMES.hasOwnProperty(key)) {
       var name = SHEET_NAMES[key];
@@ -1247,10 +1261,12 @@ function initializeDatabase(ss, postData) {
     
     // If spreadsheet is not found, automatically create a new one in the owner's Google Drive
     if (!ss) {
-      ss = SpreadsheetApp.create("Enterprise CRM Database");
       try {
+        ss = SpreadsheetApp.create("Enterprise CRM Database");
         PropertiesService.getScriptProperties().setProperty("SPREADSHEET_ID", ss.getId());
-      } catch (e) {}
+      } catch (e) {
+        return { success: false, error: "Failed to automatically create spreadsheet. Please check your Apps Script execution permissions: " + e.toString() };
+      }
     }
     
     // Ensure all 10 sheets and headers are created
