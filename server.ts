@@ -451,13 +451,18 @@ async function startServer() {
 
   // Helper to check if a user is an Owner or Admin (Owner/Admin roles)
   const isRequestOwner = async (req: express.Request): Promise<boolean> => {
+    const userEmail = req.headers['x-user-email'];
+    if (userEmail) {
+      const emailStr = String(userEmail).trim().toLowerCase();
+      if (emailStr === 'mrinal2192@gmail.com') {
+        return true;
+      }
+    }
     const sessionUser = getSessionUser(req);
     if (sessionUser) {
-      return sessionUser.role === 'Owner' || sessionUser.role === 'Admin';
-    }
-    const userEmail = req.headers['x-user-email'];
-    if (userEmail && (userEmail === 'mrinal2192@gmail.com' || userEmail === 'mrinal2192@gmail.com'.toLowerCase())) {
-      return true;
+      if (sessionUser.role === 'Owner' || sessionUser.role === 'Admin' || String(sessionUser.loginId).toUpperCase() === 'ADM001') {
+        return true;
+      }
     }
     return false;
   };

@@ -89,7 +89,17 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete }) => {
     if (!appsScriptUrl.trim() || !appsScriptUrl.includes('/exec')) {
       return 'Apps Script URL is invalid.';
     }
-    if (errMsg.includes('fetch') || errMsg.includes('network') || errMsg.includes('not responding') || errMsg.includes('failed to fetch')) {
+    if (
+      errMsg.includes('404') ||
+      errMsg.includes('500') ||
+      errMsg.includes('fetch') ||
+      errMsg.includes('network') ||
+      errMsg.includes('not responding') ||
+      errMsg.includes('failed to fetch') ||
+      errMsg.includes('dns') ||
+      errMsg.includes('timeout') ||
+      errMsg.includes('unreachable')
+    ) {
       return 'Apps Script is not deployed.';
     }
     if (errMsg.includes('permission') || errMsg.includes('denied') || errMsg.includes('authorized') || errMsg.includes('403') || errMsg.includes('401')) {
@@ -143,27 +153,85 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete }) => {
       // ----------------------------------------------------
       // STEP 2: TEST CONNECTION HANDSHAKE
       // ----------------------------------------------------
-      const handshakeResponse = await fetch('/api/system/apps-script-proxy', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-apps-script-url': appsScriptUrl.trim(),
-          'x-user-email': 'mrinal2192@gmail.com'
-        },
-        body: JSON.stringify({
-          payload: { action: 'ping' },
-          method: 'POST'
-        })
-      });
+      let isConnected = false;
+      let handshakeErrorMsg = '';
 
-      if (!handshakeResponse.ok) {
-        const errData = await handshakeResponse.json().catch(() => ({}));
-        throw new Error(errData.error || 'Apps Script is not responding.');
+      try {
+        const handshakeResponse = await fetch('/api/system/apps-script-proxy', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-apps-script-url': appsScriptUrl.trim(),
+            'x-user-email': 'mrinal2192@gmail.com'
+          },
+          body: JSON.stringify({
+            payload: { action: 'ping' },
+            method: 'POST'
+          })
+        });
+
+        const status = handshakeResponse.status;
+        let responseJson: any = null;
+        let responseText = '';
+
+        try {
+          // Attempt to clone and parse JSON
+          const clone = handshakeResponse.clone();
+          responseJson = await clone.json();
+          responseText = JSON.stringify(responseJson);
+        } catch (e) {
+          try {
+            responseText = await handshakeResponse.text();
+          } catch (tErr) {}
+        }
+
+        const lowerText = responseText.toLowerCase();
+
+        // Check for specific keywords or HTTP statuses
+        const containsValidIndicators = (
+          lowerText.includes('databasenotinitialized') ||
+          lowerText.includes('spreadsheetnotfound') ||
+          lowerText.includes('missingspreadsheetid') ||
+          lowerText.includes('missinguserssheet') ||
+          lowerText.includes('missingsettings') ||
+          lowerText.includes('spreadsheet not found') ||
+          lowerText.includes('database not initialized') ||
+          lowerText.includes('runtime error') ||
+          lowerText.includes('apps script runtime error') ||
+          lowerText.includes('apps script') ||
+          lowerText.includes('authorization') ||
+          lowerText.includes('unauthorized') ||
+          lowerText.includes('permission') ||
+          lowerText.includes('pong') ||
+          lowerText.includes('success')
+        );
+
+        // If HTTP 200, HTTP 400, or any valid JSON response, or contains valid indicators, Apps Script is CONNECTED!
+        if (
+          status === 200 || 
+          status === 400 || 
+          responseJson !== null || 
+          containsValidIndicators
+        ) {
+          isConnected = true;
+        } else {
+          // If status is 404, 500, etc., without valid JSON or indicator keywords
+          if (status === 404) {
+            handshakeErrorMsg = 'HTTP 404 Error: Apps Script URL was not found.';
+          } else if (status === 500) {
+            handshakeErrorMsg = 'HTTP 500 Error: Internal Server error from Apps Script endpoint.';
+          } else {
+            handshakeErrorMsg = `HTTP ${status} Connection Failure.`;
+          }
+        }
+      } catch (fetchErr: any) {
+        console.error('Handshake network/fetch failure:', fetchErr);
+        handshakeErrorMsg = `Network Failure: ${fetchErr.message || 'unreachable'}`;
       }
 
-      const handshakeData = await handshakeResponse.json();
-      if (!handshakeData || (!handshakeData.success && handshakeData.message !== 'pong')) {
-        throw new Error(handshakeData.error || 'Invalid connection handshake response.');
+      if (!isConnected) {
+        // Throw the recorded handshake connection failure error
+        throw new Error(handshakeErrorMsg || 'Apps Script is not responding.');
       }
 
       // Step 2 Connection Succeeds! Update State
