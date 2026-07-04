@@ -289,7 +289,19 @@ async function callAppsScript(url: string, payload: any, method: 'GET' | 'POST' 
 
     if (result && typeof result === 'object' && 'error' in result && result.error) {
       const errMsg = String(result.error);
-      if (
+      
+      const isExpectedSetupIssue = 
+        result.spreadsheetNotFound ||
+        result.databaseNotInitialized ||
+        result.missingSpreadsheet ||
+        result.missingUsersSheet ||
+        errMsg.includes('spreadsheetNotFound') ||
+        errMsg.includes('databaseNotInitialized') ||
+        errMsg.includes('missingSpreadsheet') ||
+        errMsg.includes('missingUsersSheet') ||
+        errMsg.includes('not initialized');
+      
+      if (!isExpectedSetupIssue && (
         errMsg.includes('ReferenceError') ||
         errMsg.includes('not defined') ||
         errMsg.includes('TypeError') ||
@@ -297,7 +309,7 @@ async function callAppsScript(url: string, payload: any, method: 'GET' | 'POST' 
         errMsg.includes('Permission') ||
         errMsg.includes('not found') ||
         errMsg.includes('Error')
-      ) {
+      )) {
         throw new Error(`Apps Script Runtime Error: ${errMsg}`);
       }
     }

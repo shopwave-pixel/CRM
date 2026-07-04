@@ -3,9 +3,14 @@
  * File: Auth.gs - Verification and Login Services
  */
 
+/**
+ * Verifies a user login against stored Login ID and Password Hash.
+ * Returns a complete user profile upon successful validation.
+ */
 function verifyLogin(sheet, loginId, passwordHash) {
   var users = getSheetData(sheet, SHEET_NAMES.USERS);
   var foundUser = null;
+  
   for (var i = 0; i < users.length; i++) {
     var u = users[i];
     var lId = u.loginId || u["Login ID"] || "";
@@ -30,18 +35,20 @@ function verifyLogin(sheet, loginId, passwordHash) {
   }
   
   var userProfile = {
-    userId: foundUser.userId || foundUser["User ID"] || "",
-    loginId: foundUser.loginId || foundUser["Login ID"] || "",
-    fullName: foundUser.fullName || foundUser["Full Name"] || "",
+    email: foundUser.email || foundUser["Email"] || "",
+    fullName: foundUser.name || foundUser.fullName || foundUser["Name"] || "",
+    photoUrl: foundUser.photoUrl || foundUser["Photo URL"] || "",
     role: foundUser.role || foundUser["Role"] || "",
     status: foundUser.status || foundUser["Status"] || "",
     phone: foundUser.phone || foundUser["Phone"] || "",
-    email: foundUser.email || foundUser["Email"] || "",
     createdDate: foundUser.createdDate || foundUser["Created Date"] || "",
     updatedDate: foundUser.updatedDate || foundUser["Updated Date"] || "",
     lastLogin: foundUser.lastLogin || foundUser["Last Login"] || "",
     lastActivity: foundUser.lastActivity || foundUser["Last Activity"] || "",
-    notes: foundUser.notes || foundUser["Notes"] || ""
+    notes: foundUser.notes || foundUser["Notes"] || "",
+    employeeCode: foundUser.employeeCode || foundUser["Employee Code"] || "",
+    loginId: foundUser.loginId || foundUser["Login ID"] || "",
+    passwordHash: foundUser.passwordHash || foundUser["Password Hash"] || ""
   };
   
   var now = getBangladeshDateTimeString();
@@ -51,6 +58,9 @@ function verifyLogin(sheet, loginId, passwordHash) {
   return { success: true, user: userProfile };
 }
 
+/**
+ * Checks if a user email exists and returns the authorized user's details.
+ */
 function checkUser(sheet, email, name) {
   var users = getSheetData(sheet, SHEET_NAMES.USERS);
   for (var i = 0; i < users.length; i++) {
@@ -58,18 +68,20 @@ function checkUser(sheet, email, name) {
     var uEmail = u.email || u["Email"] || "";
     if (uEmail.toString().trim().toLowerCase() === email.trim().toLowerCase()) {
       return { authorized: true, user: {
-        userId: u.userId || u["User ID"] || "",
-        loginId: u.loginId || u["Login ID"] || "",
-        fullName: u.fullName || u["Full Name"] || "",
+        email: uEmail,
+        fullName: u.name || u.fullName || u["Name"] || "",
+        photoUrl: u.photoUrl || u["Photo URL"] || "",
         role: u.role || u["Role"] || "",
         status: u.status || u["Status"] || "",
         phone: u.phone || u["Phone"] || "",
-        email: uEmail,
         createdDate: u.createdDate || u["Created Date"] || "",
         updatedDate: u.updatedDate || u["Updated Date"] || "",
         lastLogin: u.lastLogin || u["Last Login"] || "",
         lastActivity: u.lastActivity || u["Last Activity"] || "",
-        notes: u.notes || u["Notes"] || ""
+        notes: u.notes || u["Notes"] || "",
+        employeeCode: u.employeeCode || u["Employee Code"] || "",
+        loginId: u.loginId || u["Login ID"] || "",
+        passwordHash: u.passwordHash || u["Password Hash"] || ""
       }};
     }
   }

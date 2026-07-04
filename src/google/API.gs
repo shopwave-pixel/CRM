@@ -150,6 +150,11 @@ function initializeDatabase(ss, postData) {
       return { success: false, error: "Spreadsheet creation failed or is unavailable." };
     }
     
+    // Explicitly set script property to be absolutely sure SPREADSHEET_ID is persisted
+    try {
+      PropertiesService.getScriptProperties().setProperty("SPREADSHEET_ID", ss.getId());
+    } catch (pErr) {}
+    
     // Ensure all 10 sheets and headers are created and verified
     initSheets(ss);
     

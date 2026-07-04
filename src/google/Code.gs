@@ -89,6 +89,38 @@ if (typeof globalRef.initSheets !== 'function') {
 function doGet(e) {
   try {
     var action = e.parameter.action;
+    
+    if (action === "health") {
+      var ssId = e.parameter.spreadsheetId || e.parameter.spreadsheet_id || e.parameter.id;
+      if (!ssId) {
+        try {
+          ssId = PropertiesService.getScriptProperties().getProperty("SPREADSHEET_ID");
+        } catch (pErr) {}
+      }
+      var ss = null;
+      var spreadsheetExists = false;
+      var databaseInitialized = false;
+      if (ssId) {
+        try {
+          ss = SpreadsheetApp.openById(ssId);
+          if (ss) {
+            spreadsheetExists = true;
+            var usersSheet = ss.getSheetByName("Users");
+            if (usersSheet && usersSheet.getLastRow() > 0) {
+              databaseInitialized = true;
+            }
+          }
+        } catch (openErr) {}
+      }
+      return globalRef.jsonResponse({
+        success: true,
+        appsScript: true,
+        databaseInitialized: databaseInitialized,
+        spreadsheetExists: spreadsheetExists,
+        version: "4.0"
+      });
+    }
+
     if (action === "ping") {
       return globalRef.jsonResponse({ success: true, message: "pong" });
     }
@@ -155,6 +187,38 @@ function doPost(e) {
     }
     
     var action = postData ? postData.action : "";
+    
+    if (action === "health") {
+      var ssId = (postData && (postData.spreadsheetId || postData.spreadsheet_id || postData.id)) || e.parameter.spreadsheetId;
+      if (!ssId) {
+        try {
+          ssId = PropertiesService.getScriptProperties().getProperty("SPREADSHEET_ID");
+        } catch (pErr) {}
+      }
+      var ss = null;
+      var spreadsheetExists = false;
+      var databaseInitialized = false;
+      if (ssId) {
+        try {
+          ss = SpreadsheetApp.openById(ssId);
+          if (ss) {
+            spreadsheetExists = true;
+            var usersSheet = ss.getSheetByName("Users");
+            if (usersSheet && usersSheet.getLastRow() > 0) {
+              databaseInitialized = true;
+            }
+          }
+        } catch (openErr) {}
+      }
+      return globalRef.jsonResponse({
+        success: true,
+        appsScript: true,
+        databaseInitialized: databaseInitialized,
+        spreadsheetExists: spreadsheetExists,
+        version: "4.0"
+      });
+    }
+
     if (action === "ping") {
       return globalRef.jsonResponse({ success: true, message: "pong" });
     }

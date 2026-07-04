@@ -86,6 +86,16 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete }) => {
   // Custom setup error mapping
   const mapSetupError = (err: any): string => {
     const errMsg = String(err.message || err).toLowerCase();
+    if (
+      errMsg.includes('spreadsheetnotfound') ||
+      errMsg.includes('databasenotinitialized') ||
+      errMsg.includes('missingspreadsheet') ||
+      errMsg.includes('missinguserssheet') ||
+      errMsg.includes('spreadsheet not found') ||
+      errMsg.includes('database not initialized')
+    ) {
+      return 'Database is not initialized. Click below to initialize the spreadsheet database.';
+    }
     if (!appsScriptUrl.trim() || !appsScriptUrl.includes('/exec')) {
       return 'Apps Script URL is invalid.';
     }
@@ -165,7 +175,7 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete }) => {
             'x-user-email': 'mrinal2192@gmail.com'
           },
           body: JSON.stringify({
-            payload: { action: 'ping' },
+            payload: { action: 'health' },
             method: 'POST'
           })
         });
