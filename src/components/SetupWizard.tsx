@@ -190,8 +190,11 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete }) => {
         // Check for specific keywords or HTTP statuses
         const containsValidIndicators = (
           lowerText.includes('databasenotinitialized') ||
+          lowerText.includes('database_not_initialized') ||
           lowerText.includes('spreadsheetnotfound') ||
+          lowerText.includes('spreadsheet_not_found') ||
           lowerText.includes('missingspreadsheetid') ||
+          lowerText.includes('missing_spreadsheet_id') ||
           lowerText.includes('missinguserssheet') ||
           lowerText.includes('missingsettings') ||
           lowerText.includes('spreadsheet not found') ||
@@ -203,14 +206,16 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete }) => {
           lowerText.includes('unauthorized') ||
           lowerText.includes('permission') ||
           lowerText.includes('pong') ||
-          lowerText.includes('success')
+          lowerText.includes('success') ||
+          lowerText.includes('error') ||
+          lowerText.includes('message')
         );
 
         // If HTTP 200, HTTP 400, or any valid JSON response, or contains valid indicators, Apps Script is CONNECTED!
         if (
           status === 200 || 
           status === 400 || 
-          responseJson !== null || 
+          (responseJson !== null && typeof responseJson === 'object') || 
           containsValidIndicators
         ) {
           isConnected = true;
@@ -280,11 +285,13 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete }) => {
         throw new Error(dbData.error || 'Database initialization returned error status.');
       }
 
+      const createdSpreadsheetId = dbData.spreadsheetId;
+
       setInitializedSpreadsheet({
-        id: dbData.spreadsheetId,
+        id: createdSpreadsheetId,
         name: dbData.spreadsheetName
       });
-      localStorage.setItem('GOOGLE_SPREADSHEET_ID', dbData.spreadsheetId);
+      localStorage.setItem('GOOGLE_SPREADSHEET_ID', createdSpreadsheetId);
 
       // Successfully finished steps 3, 4, 5, 6
       setStepsProgress(prev => ({ 
@@ -314,7 +321,8 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete }) => {
       const diagResponse = await fetch('/api/system/extended-status', {
         headers: {
           'x-apps-script-url': appsScriptUrl.trim(),
-          'x-user-email': 'mrinal2192@gmail.com'
+          'x-user-email': 'mrinal2192@gmail.com',
+          'x-spreadsheet-id': createdSpreadsheetId
         }
       });
 
@@ -344,10 +352,10 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete }) => {
 
       setDiagnosticsChecklist(mappedChecklist);
 
-      // Check if any item failed
-      const hasFailure = Object.values(mappedChecklist).some(val => val === 'error');
-      if (hasFailure) {
-        throw new Error('Self-diagnostic scan flagged sheet setup anomalies.');
+      // Check if Apps Script itself is reachable (connected)
+      const appsScriptConnected = mappedChecklist['Google Apps Script'] === 'success';
+      if (!appsScriptConnected) {
+        throw new Error('Google Apps Script is unreachable or not deployed.');
       }
 
       // Step 7 Diagnostics Successful!

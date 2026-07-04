@@ -10,7 +10,13 @@
 var globalRef = this;
 
 if (typeof globalRef.getSpreadsheet !== 'function') {
-  globalRef.getSpreadsheet = function() {
+  globalRef.getSpreadsheet = function(id) {
+    if (id) {
+      try {
+        var ss = SpreadsheetApp.openById(id);
+        if (ss) return ss;
+      } catch (openIdErr) {}
+    }
     try {
       var ss = SpreadsheetApp.getActiveSpreadsheet();
       if (ss) return ss;
@@ -86,7 +92,8 @@ function doGet(e) {
     if (action === "ping") {
       return globalRef.jsonResponse({ success: true, message: "pong" });
     }
-    var sheet = globalRef.getSpreadsheet();
+    var spreadsheetId = e.parameter.spreadsheetId || e.parameter.spreadsheet_id || e.parameter.id;
+    var sheet = globalRef.getSpreadsheet(spreadsheetId);
     if (!sheet) {
       return globalRef.jsonResponse({
         error: "Spreadsheet not found. Please ensure the Apps Script SPREADSHEET_ID script property is configured.",
@@ -152,7 +159,8 @@ function doPost(e) {
       return globalRef.jsonResponse({ success: true, message: "pong" });
     }
     
-    var sheet = globalRef.getSpreadsheet();
+    var spreadsheetId = (postData && (postData.spreadsheetId || postData.spreadsheet_id || postData.id)) || e.parameter.spreadsheetId;
+    var sheet = globalRef.getSpreadsheet(spreadsheetId);
     if (!sheet && action !== "initializeDatabase") {
       return globalRef.jsonResponse({
         error: "Spreadsheet not found. Please ensure the Apps Script SPREADSHEET_ID script property is configured.",

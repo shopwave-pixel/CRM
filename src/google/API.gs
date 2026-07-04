@@ -3,7 +3,14 @@
  * File: API.gs - Google REST API Adapters and Sheet Operations
  */
 
-function getSpreadsheet() {
+function getSpreadsheet(id) {
+  if (id) {
+    try {
+      var ss = SpreadsheetApp.openById(id);
+      if (ss) return ss;
+    } catch (openIdErr) {}
+  }
+
   try {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     if (ss) return ss;

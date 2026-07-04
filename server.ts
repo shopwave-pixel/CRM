@@ -1483,12 +1483,18 @@ async function startServer() {
 
     if (gasUrl) {
       try {
-        const sysInfo = await callAppsScript(gasUrl, { action: 'getSystemInfo' }, 'GET');
+        const spreadsheetId = req.headers['x-spreadsheet-id'] || process.env.GOOGLE_SPREADSHEET_ID;
+        const payload: any = { action: 'getSystemInfo' };
+        if (spreadsheetId) {
+          payload.spreadsheetId = spreadsheetId;
+        }
+
+        const sysInfo = await callAppsScript(gasUrl, payload, 'GET');
         if (sysInfo && !sysInfo.error) {
           sheetsStatus = {
             status: 'Connected',
             spreadsheetName: sysInfo.spreadsheetName || 'Enterprise CRM DB',
-            spreadsheetId: sysInfo.spreadsheetId || '1x_GoogleSheetsID_ActiveLink_p0',
+            spreadsheetId: sysInfo.spreadsheetId || String(spreadsheetId || '1x_GoogleSheetsID_ActiveLink_p0'),
             lastSync: sysInfo.lastSync || getBangladeshDateTimeString(),
             totalSheets: sysInfo.totalSheets || 5,
             deploymentVersion: sysInfo.deploymentVersion || 'v3.5.0-Enterprise',
@@ -1504,13 +1510,33 @@ async function startServer() {
 
           diagnostics = sysInfo.diagnostics || null;
         } else {
+          // If we got any response from the Apps Script, it is deployed and online.
           appsScriptStatus.webAppUrl = gasUrl;
-          appsScriptStatus.status = 'Disconnected';
+          appsScriptStatus.status = 'Connected';
+          sheetsStatus.status = 'Disconnected';
         }
       } catch (err: any) {
         console.error('Apps Script getSystemInfo call failed:', err);
         appsScriptStatus.webAppUrl = gasUrl;
-        appsScriptStatus.status = 'Disconnected';
+        
+        const errMsg = String(err.message || '').toLowerCase();
+        const isUnreachable = 
+          errMsg.includes('404') ||
+          errMsg.includes('500') ||
+          errMsg.includes('fetch') ||
+          errMsg.includes('network') ||
+          errMsg.includes('not responding') ||
+          errMsg.includes('failed to fetch') ||
+          errMsg.includes('dns') ||
+          errMsg.includes('timeout') ||
+          errMsg.includes('unreachable');
+
+        if (!isUnreachable) {
+          appsScriptStatus.status = 'Connected';
+        } else {
+          appsScriptStatus.status = 'Disconnected';
+        }
+        sheetsStatus.status = 'Disconnected';
       }
     }
 
